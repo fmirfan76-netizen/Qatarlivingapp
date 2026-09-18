@@ -1,0 +1,91 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512">
+  <defs>
+    <!-- Maroon gradient -->
+    <linearGradient id="qlMaroon" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#8e1e3c" />
+      <stop offset="100%" stop-color="#6e132c" />
+    </linearGradient>
+    <linearGradient id="qlGold" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#d4af37" />
+      <stop offset="100%" stop-color="#b8860b" />
+    </linearGradient>
+  </defs>
+
+  <!-- Background Base -->
+  <rect width="512" height="512" rx="90" fill="#f8fafc" />
+  
+  <!-- Outer Card with Maroon Border -->
+  <rect x="24" y="24" width="464" height="464" rx="76" fill="#ffffff" stroke="#8e1e3c" stroke-width="16" />
+
+  <!-- Doha Skyline & Upward Arrow Graphic -->
+  <g transform="translate(60, 60)">
+    <!-- Skyline Silhouette (Maroon lines and shapes) -->
+    <!-- Tower 1: Palm Tower left -->
+    <path d="M 68 190 L 68 135 L 85 110 L 98 110 L 115 135 L 115 190 Z" fill="none" stroke="#8e1e3c" stroke-width="5" stroke-linejoin="round" />
+    <line x1="91" y1="110" x2="91" y2="85" stroke="#8e1e3c" stroke-width="5" stroke-linecap="round" />
+    
+    <!-- Tower 2: Highrise -->
+    <path d="M 125 195 L 125 95 L 155 75 L 160 195 Z" fill="none" stroke="#8e1e3c" stroke-width="5" stroke-linejoin="round" />
+    <line x1="140" y1="75" x2="140" y2="55" stroke="#8e1e3c" stroke-width="4" stroke-linecap="round" />
+
+    <!-- Tower 3: Burj Doha (Iconic dome cylinder with lattice) -->
+    <path d="M 175 195 L 175 60 C 175 25, 205 25, 205 60 L 205 195 Z" fill="none" stroke="#8e1e3c" stroke-width="5" stroke-linejoin="round" />
+    <line x1="190" y1="28" x2="190" y2="10" stroke="#8e1e3c" stroke-width="4" stroke-linecap="round" />
+    <!-- Burj Doha Lattice lines -->
+    <path d="M 177 70 L 203 95 M 203 70 L 177 95 M 177 105 L 203 130 M 203 105 L 177 130" stroke="#8e1e3c" stroke-width="3" stroke-linecap="round" opacity="0.6" />
+
+    <!-- Tower 4: Tornado Tower (Hourglass lattice silhouette) -->
+    <path d="M 220 195 Q 235 120 226 65 L 254 65 Q 245 120 260 195 Z" fill="none" stroke="#8e1e3c" stroke-width="5" stroke-linejoin="round" />
+    <line x1="228" y1="75" x2="252" y2="105" stroke="#8e1e3c" stroke-width="2.5" opacity="0.6" />
+    <line x1="252" y1="75" x2="228" y2="105" stroke="#8e1e3c" stroke-width="2.5" opacity="0.6" />
+
+    <!-- Tower 5: Right Highrise -->
+    <path d="M 270 195 L 270 115 L 295 115 L 295 195 Z" fill="none" stroke="#8e1e3c" stroke-width="5" stroke-linejoin="round" />
+    <line x1="282" y1="115" x2="282" y2="95" stroke="#8e1e3c" stroke-width="4" stroke-linecap="round" />
+
+    <!-- Stylized Traditional Dhow Boat Sail (maroon & gold curves) -->
+    <path d="M 285 190 Q 300 150 340 120 Q 320 170 325 190 Z" fill="#8e1e3c" />
+    <!-- Gold Waves under boat -->
+    <path d="M 255 195 Q 285 180 320 192 Q 350 200 375 190" fill="none" stroke="url(#qlGold)" stroke-width="5" stroke-linecap="round" />
+    <path d="M 270 205 Q 295 195 330 202 Q 355 208 375 200" fill="none" stroke="#8e1e3c" stroke-width="4" stroke-linecap="round" />
+
+    <!-- Dynamic Upward Growth Arrow (Maroon & Gold underline) -->
+    <!-- Gold Underline / Shadow Ribbon -->
+    <path d="M 50 196 L 150 148 L 195 180 L 335 88 L 335 106 L 202 195 L 148 162 L 50 210 Z" fill="url(#qlGold)" />
+
+    <!-- Main Maroon Growth Arrow -->
+    <path d="M 50 186 L 150 138 L 195 170 L 305 92 L 295 72 L 358 75 L 348 138 L 328 122 L 200 180 L 148 150 L 50 198 Z" fill="url(#qlMaroon)" />
+  </g>
+
+  <!-- Title: QATAR LIVING -->
+  <text x="256" y="326" text-anchor="middle" fill="#8e1e3c" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Montserrat, Arial, sans-serif" font-size="34" font-weight="900" letter-spacing="2">
+    QATAR LIVING
+  </text>
+
+  <!-- Bottom Qatar Flag Serrated Badge for "JOB" -->
+  <g transform="translate(48, 350)">
+    <!-- Main Maroon Box (380w x 96h) with rounded right corners -->
+    <path d="M 120 0 L 396 0 C 407 0, 416 9, 416 20 L 416 76 C 416 87, 407 96, 396 96 L 120 96 Z" fill="url(#qlMaroon)" />
+    
+    <!-- Qatar Flag Serrated Triangle Teeth (9 White Serrated Points) -->
+    <!-- Serrated teeth matching the official Qatar national flag -->
+    <path d="
+      M 120 0 
+      L 136 5.3 L 120 10.6
+      L 136 16.0 L 120 21.3
+      L 136 26.6 L 120 32.0
+      L 136 37.3 L 120 42.6
+      L 136 48.0 L 120 53.3
+      L 136 58.6 L 120 64.0
+      L 136 69.3 L 120 74.6
+      L 136 80.0 L 120 85.3
+      L 136 90.6 L 120 96.0
+      L 70 96 C 59 96, 50 87, 50 76 L 50 20 C 50 9, 59 0, 70 0 Z" 
+      fill="#ffffff" />
+
+    <!-- "JOB" Text inside the Maroon Badge -->
+    <text x="240" y="68" text-anchor="middle" fill="#ffffff" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Arial, sans-serif" font-size="52" font-weight="900" letter-spacing="6">
+      JOB
+    </text>
+  </g>
+</svg>

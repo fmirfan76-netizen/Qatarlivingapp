@@ -1,0 +1,8 @@
+{
+  "name": "Qatar Living Jobs",
+  "description": "Latest jobs in Qatar updated daily from qatarlivingjobs1.com/p/app.html with instant search, category filtering, WhatsApp sharing, ATS CV services, and Android APK download.",
+  "requestFramePermissions": [],
+  "majorCapabilities": [
+    "MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"
+  ]
+}

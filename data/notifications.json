@@ -1,0 +1,26 @@
+[
+  {
+    "id": "notif-init-1",
+    "title": "🎉 Qatar Living Jobs v2.5 Updated!",
+    "body": "Direct APK download is now live! Plus Vehicles, Rooms, and Bed Space classifieds categories are now active.",
+    "date": "2026-09-18T08:00:00.000Z",
+    "type": "update",
+    "actionUrl": "apk"
+  },
+  {
+    "id": "notif-init-2",
+    "title": "💼 New Qatar Jobs Added Today",
+    "body": "Over 25 fresh jobs verified across Doha, Lusail, and Al Rayyan. WhatsApp employers directly!",
+    "date": "2026-09-18T07:30:00.000Z",
+    "type": "job",
+    "actionUrl": "jobs"
+  },
+  {
+    "id": "notif-init-3",
+    "title": "🛏️ Rooms & Bed Space Listings Available",
+    "body": "New verified executive bed spaces and rooms in Mansoura and Najma with free Kahramaa & WiFi.",
+    "date": "2026-09-18T06:15:00.000Z",
+    "type": "classified",
+    "actionUrl": "rooms"
+  }
+]
