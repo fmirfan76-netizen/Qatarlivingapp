@@ -57,8 +57,7 @@ export const AdminModerationModal: React.FC<AdminModerationModalProps> = ({
   const [autoSignOutOnApprove, setAutoSignOutOnApprove] = useState(true);
   const [stats, setStats] = useState<AdminStats>({ total: 0, pending: 0, approved: 0, rejected: 0 });
   const [listings, setListings] = useState<UserListing[]>([]);
-  const [applications, setApplications] = useState<JobApplication[]>([]);
-  const [activeTab, setActiveTab] = useState<'pending' | 'approved' | 'rejected' | 'all' | 'applications'>('pending');
+  const [activeTab, setActiveTab] = useState<'pending' | 'approved' | 'rejected' | 'all'>('pending');
   const [categoryFilter, setCategoryFilter] = useState<'all' | 'vehicle' | 'room' | 'mobile' | 'job'>('all');
   const [isLoading, setIsLoading] = useState(false);
   const [actionMessage, setActionMessage] = useState<string | null>(null);
@@ -85,7 +84,7 @@ export const AdminModerationModal: React.FC<AdminModerationModalProps> = ({
       sessionStorage.removeItem('ql_admin_pin_auth');
       setIsAuthenticated(false);
       setPinInput('');
-      checkAdminPinStatus().then((res) => {
+      checkAdminPinStatus(settings.adminPin).then((res) => {
         setIsDefaultPin(res.isDefault);
       });
     } else {
@@ -95,31 +94,18 @@ export const AdminModerationModal: React.FC<AdminModerationModalProps> = ({
       setPinInput('');
       setActionMessage(null);
     }
-  }, [isOpen]);
+  }, [isOpen, settings.adminPin]);
 
   const loadAdminData = async (pin: string) => {
     setIsLoading(true);
     setError(null);
     try {
-      const data = await fetchAdminListings(pin);
+      const data = await fetchAdminListings(pin, settings.adminPin);
       setListings(data.listings || []);
       setStats(data.stats || { total: 0, pending: 0, approved: 0, rejected: 0 });
       setIsAuthenticated(true);
       // Keep in local component state only, do not persist to browser storage
       setPinInput(pin);
-
-      // Load submitted job applications
-      try {
-        const appRes = await fetch('/api/admin/applications', {
-          headers: { 'x-admin-pin': pin }
-        });
-        if (appRes.ok) {
-          const appData = await appRes.json();
-          setApplications(appData.applications || []);
-        }
-      } catch (appErr) {
-        console.warn('Could not load applications:', appErr);
-      }
     } catch (err: any) {
       setError(err.message || 'Invalid Admin PIN');
       setIsAuthenticated(false);
@@ -152,7 +138,7 @@ export const AdminModerationModal: React.FC<AdminModerationModalProps> = ({
     setIsAuthenticated(false);
     setError(null);
     setActionMessage('Signed out. Admin panel locked 🔒');
-    checkAdminPinStatus().then((res) => {
+    checkAdminPinStatus(settings.adminPin).then((res) => {
       setIsDefaultPin(res.isDefault);
     });
     setTimeout(() => setActionMessage(null), 2500);
@@ -270,7 +256,7 @@ export const AdminModerationModal: React.FC<AdminModerationModalProps> = ({
       setIsLoading(true);
       setError(null);
       // Persist to server backend
-      await changeAdminPin(pinInput, cleanNewPin);
+      await changeAdminPin(pinInput, cleanNewPin, settings.adminPin);
       const updatedSettings = { ...settings, adminPin: cleanNewPin };
       onUpdateSettings(updatedSettings);
       setPinInput(cleanNewPin);
@@ -282,28 +268,6 @@ export const AdminModerationModal: React.FC<AdminModerationModalProps> = ({
       setTimeout(() => setActionMessage(null), 4000);
     } catch (err: any) {
       setError(err.message || 'Failed to change Admin PIN');
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  const handleDeleteApplication = async (appId: string) => {
-    try {
-      setIsLoading(true);
-      const res = await fetch(`/api/admin/applications/${appId}`, {
-        method: 'DELETE',
-        headers: { 'x-admin-pin': pinInput }
-      });
-      if (res.ok) {
-        setApplications((prev) => prev.filter((a) => a.id !== appId));
-        setActionMessage('Application deleted permanently.');
-        setTimeout(() => setActionMessage(null), 3000);
-      } else {
-        const d = await res.json().catch(() => ({}));
-        setError(d.error || 'Failed to delete application.');
-      }
-    } catch (err: any) {
-      setError(err.message || 'Failed to delete application.');
     } finally {
       setIsLoading(false);
     }
@@ -475,22 +439,6 @@ export const AdminModerationModal: React.FC<AdminModerationModalProps> = ({
                   }`}
                 >
                   All ({stats.total})
-                </button>
-
-                {/* Applications tab */}
-                <button
-                  onClick={() => setActiveTab('applications')}
-                  className={`px-3 py-1.5 rounded-lg font-bold flex items-center gap-1.5 transition-all cursor-pointer ${
-                    activeTab === 'applications'
-                      ? 'bg-blue-600 text-white shadow-xs'
-                      : 'bg-white text-stone-700 border border-stone-200 hover:bg-stone-100'
-                  }`}
-                >
-                  <Send className="w-3.5 h-3.5" />
-                  <span>In-App Applications</span>
-                  <span className="px-1.5 py-0.2 rounded-full text-[10.5px] bg-black/20 text-white font-extrabold">
-                    {applications.length}
-                  </span>
                 </button>
               </div>
 
@@ -709,117 +657,7 @@ export const AdminModerationModal: React.FC<AdminModerationModalProps> = ({
 
             {/* Listings Review List */}
             <div className="p-4 sm:p-5 overflow-y-auto space-y-3.5 flex-1">
-              {activeTab === 'applications' ? (
-                applications.length === 0 ? (
-                  <div className="text-center py-12 px-4 bg-stone-50 rounded-xl border border-dashed border-stone-200">
-                    <p className="text-stone-500 font-medium text-[13.5px]">
-                      No job applications submitted yet.
-                    </p>
-                    <p className="text-stone-400 text-[11.5px] mt-1">
-                      When users apply for jobs directly inside the app, their applications and resumes appear here.
-                    </p>
-                  </div>
-                ) : (
-                  applications.map((app) => (
-                    <div
-                      key={app.id}
-                      className="p-4 rounded-xl border border-stone-200 bg-white shadow-2xs space-y-2.5"
-                    >
-                      <div className="flex items-start justify-between gap-3">
-                        <div>
-                          <span className="px-2 py-0.5 rounded-full text-[10.5px] font-bold bg-blue-100 text-blue-800 mr-2">
-                            Ref: #{app.id.slice(-6).toUpperCase()}
-                          </span>
-                          <span className="text-[11px] text-stone-400 font-mono">
-                            {new Date(app.appliedAt).toLocaleDateString()}
-                          </span>
-                          <h4 className="text-[14px] font-bold text-stone-900 mt-1">
-                            {app.jobTitle}
-                          </h4>
-                          <p className="text-[12px] text-stone-500">
-                            Company: <strong className="text-stone-700">{app.company}</strong>
-                          </p>
-                        </div>
-                        <button
-                          onClick={() => handleDeleteApplication(app.id)}
-                          className="p-1.5 rounded-lg text-stone-400 hover:text-red-600 hover:bg-red-50 text-[12px] transition-colors cursor-pointer"
-                          title="Delete application"
-                        >
-                          <Trash2 className="w-4 h-4" />
-                        </button>
-                      </div>
-
-                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 p-2.5 rounded-lg bg-stone-50 text-[12px] border border-stone-100">
-                        <div>
-                          <span className="text-stone-500">Candidate:</span>{' '}
-                          <strong className="text-stone-800">{app.applicantName}</strong>
-                        </div>
-                        <div>
-                          <span className="text-stone-500">WhatsApp / Phone:</span>{' '}
-                          <strong className="text-stone-800 font-mono">{app.phone}</strong>
-                        </div>
-                        {app.email && (
-                          <div>
-                            <span className="text-stone-500">Email:</span>{' '}
-                            <span className="text-stone-700 font-mono text-[11px]">{app.email}</span>
-                          </div>
-                        )}
-                        <div>
-                          <span className="text-stone-500">Experience:</span>{' '}
-                          <span className="text-stone-700">{app.experienceYears}</span>
-                        </div>
-                        <div>
-                          <span className="text-stone-500">Visa Status:</span>{' '}
-                          <span className="text-stone-800 font-semibold">{app.currentVisaStatus}</span>
-                        </div>
-                        {app.expectedSalary && (
-                          <div>
-                            <span className="text-stone-500">Expected Salary:</span>{' '}
-                            <span className="text-emerald-700 font-bold">{app.expectedSalary}</span>
-                          </div>
-                        )}
-                      </div>
-
-                      {app.cvFileName && (
-                        <div className="flex items-center gap-1.5 text-[11.5px] text-stone-600">
-                          <span className="font-bold text-stone-500">Resume / CV:</span>
-                          <span className="font-medium bg-stone-100 px-2 py-0.5 rounded border border-stone-200">
-                            📄 {app.cvFileName}
-                          </span>
-                        </div>
-                      )}
-
-                      {app.coverNote && (
-                        <div className="p-2.5 rounded bg-amber-50/50 border border-amber-200/60 text-[11.5px] text-stone-700">
-                          <span className="font-bold text-amber-900 block mb-0.5">Cover Note:</span>
-                          <p className="whitespace-pre-line">{app.coverNote}</p>
-                        </div>
-                      )}
-
-                      <div className="pt-1 flex items-center gap-2">
-                        <a
-                          href={`https://wa.me/${app.phone.replace(/[^0-9]/g, '')}?text=${encodeURIComponent(
-                            `Hello ${app.applicantName}! Regarding your application for "${app.jobTitle}" via Qatar Living Jobs...`
-                          )}`}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="py-1.5 px-3 rounded-lg bg-[#25d366] text-white font-bold text-[11.5px] flex items-center gap-1.5 hover:bg-[#20b859]"
-                        >
-                          <MessageCircle className="w-3.5 h-3.5 fill-white" />
-                          <span>Chat on WhatsApp</span>
-                        </a>
-                        <a
-                          href={`tel:${app.phone.replace(/[^0-9]/g, '')}`}
-                          className="py-1.5 px-3 rounded-lg border border-stone-300 text-stone-700 font-semibold text-[11.5px] flex items-center gap-1 hover:bg-stone-50"
-                        >
-                          <Phone className="w-3.5 h-3.5" />
-                          <span>Call Candidate</span>
-                        </a>
-                      </div>
-                    </div>
-                  ))
-                )
-              ) : filteredListings.length === 0 ? (
+              {filteredListings.length === 0 ? (
                 <div className="text-center py-12 px-4 bg-stone-50 rounded-xl border border-dashed border-stone-200">
                   <p className="text-stone-500 font-medium text-[13.5px]">
                     No listings in <strong className="capitalize">{activeTab}</strong>.

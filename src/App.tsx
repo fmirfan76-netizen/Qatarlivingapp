@@ -60,7 +60,6 @@ export default function App() {
   const [isNotificationOpen, setIsNotificationOpen] = useState(false);
   const [unreadNotifCount, setUnreadNotifCount] = useState(0);
   const [selectedJob, setSelectedJob] = useState<Job | null>(null);
-  const [selectedJobMode, setSelectedJobMode] = useState<'details' | 'apply' | 'webview'>('details');
 
   useEffect(() => {
     fetchNotifications().then((list) => {
@@ -367,11 +366,9 @@ export default function App() {
               }}
               onSelectJob={(job) => {
                 setSelectedJob(job);
-                setSelectedJobMode('details');
               }}
               onApplyJob={(job) => {
                 setSelectedJob(job);
-                setSelectedJobMode('apply');
               }}
               onOpenPostAd={() => handleOpenPostAd('job')}
               error={fetchError}
@@ -471,7 +468,6 @@ export default function App() {
         <JobDetailModal
           job={selectedJob}
           onClose={() => setSelectedJob(null)}
-          initialMode={selectedJobMode}
           whatsappAdminNumber={settings.whatsappNumber}
         />
 

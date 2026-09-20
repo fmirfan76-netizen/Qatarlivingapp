@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Job } from '../types';
-import { Share2, Calendar, MapPin, Building2, Bookmark, Sparkles } from 'lucide-react';
+import { Share2, Calendar, MapPin, Building2, Bookmark, ExternalLink } from 'lucide-react';
 
 interface JobCardProps {
   job: Job;
@@ -107,8 +107,8 @@ export const JobCard: React.FC<JobCardProps> = ({
             }}
             className="flex-1 py-2 px-3 rounded-lg text-[12.5px] font-bold text-center text-white bg-[#8e1e3c] hover:bg-[#72152e] active:scale-[0.98] transition-all flex items-center justify-center gap-1.5 shadow-sm cursor-pointer"
           >
-            <Sparkles className="w-3.5 h-3.5 text-amber-300" />
-            Apply Now
+            <span>Apply Now</span>
+            <ExternalLink className="w-3.5 h-3.5" />
           </button>
           <a
             id={`share-btn-${job.id}`}
