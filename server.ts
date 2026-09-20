@@ -134,6 +134,31 @@ async function startServer() {
     res.json({ status: "ok" });
   });
 
+  // Google AdSense ads.txt endpoint
+  app.get("/ads.txt", (_req, res) => {
+    res.setHeader("Content-Type", "text/plain; charset=utf-8");
+    res.send("google.com, pub-5776525398556337, DIRECT, f08c47fec0942fa0\n");
+  });
+
+  // SEO robots.txt endpoint
+  app.get("/robots.txt", (_req, res) => {
+    res.setHeader("Content-Type", "text/plain; charset=utf-8");
+    res.send(
+      `User-agent: *\nAllow: /\n\nUser-agent: Mediapartners-Google\nAllow: /\n\nUser-agent: Googlebot\nAllow: /\n\nSitemap: https://www.qatarlivingjobs1.com/sitemap.xml\n`
+    );
+  });
+
+  // SEO sitemap.xml endpoint
+  app.get("/sitemap.xml", (_req, res) => {
+    const sitemapPath = path.join(process.cwd(), "public", "sitemap.xml");
+    if (fs.existsSync(sitemapPath)) {
+      res.setHeader("Content-Type", "application/xml; charset=utf-8");
+      return res.sendFile(sitemapPath);
+    }
+    res.setHeader("Content-Type", "application/xml; charset=utf-8");
+    res.send(`<?xml version="1.0" encoding="UTF-8"?><urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"><url><loc>https://www.qatarlivingjobs1.com/</loc><priority>1.0</priority></url></urlset>`);
+  });
+
   // Dynamic sync endpoint - fetches latest settings from https://www.qatarlivingjobs1.com/p/app.html
   app.get("/api/sync-app", async (_req, res) => {
     try {
@@ -607,6 +632,109 @@ async function startServer() {
 
     writeListings(all);
     res.json({ success: true, message: "Listing deleted successfully" });
+  });
+
+  // 5b. Admin: Directly post an ad with HTML / Compose rich description
+  app.post("/api/admin/create-ad", (req, res) => {
+    const pin = req.headers["x-admin-pin"] || req.query.pin;
+    const activeAdminPin = getAdminPin();
+    if (!pin || pin !== activeAdminPin) {
+      return res.status(401).json({
+        success: false,
+        error: "Unauthorized: Invalid Admin PIN"
+      });
+    }
+
+    try {
+      const {
+        type,
+        title,
+        categoryOrBrand,
+        priceOrSalary,
+        location,
+        condition,
+        storage,
+        subCategory,
+        mileage,
+        yearModel,
+        furnished,
+        utilitiesIncluded,
+        description,
+        contactName,
+        contactPhone,
+        contactEmail,
+        imageUrl,
+        featured,
+        status
+      } = req.body || {};
+
+      if (!title || !priceOrSalary) {
+        return res.status(400).json({
+          success: false,
+          error: "Title and price/salary are required."
+        });
+      }
+
+      const validTypes = ["job", "mobile", "vehicle", "room"];
+      const resolvedType = validTypes.includes(type) ? type : "job";
+
+      const all = readListings();
+      const newListing = {
+        id: `admin-ad-${Date.now()}-${Math.floor(Math.random() * 1000)}`,
+        type: resolvedType,
+        title: String(title).trim(),
+        categoryOrBrand: categoryOrBrand ? String(categoryOrBrand).trim() : (resolvedType === "job" ? "General" : "Other"),
+        priceOrSalary: String(priceOrSalary).trim(),
+        location: location ? String(location).trim() : "Doha, Qatar",
+        condition: condition ? String(condition).trim() : undefined,
+        storage: storage ? String(storage).trim() : undefined,
+        subCategory: subCategory ? String(subCategory).trim() : undefined,
+        mileage: mileage ? String(mileage).trim() : undefined,
+        yearModel: yearModel ? String(yearModel).trim() : undefined,
+        furnished: furnished ? String(furnished).trim() : undefined,
+        utilitiesIncluded: Boolean(utilitiesIncluded),
+        description: description ? String(description).trim() : "",
+        contactName: contactName ? String(contactName).trim() : "Qatar Living Admin",
+        contactPhone: contactPhone ? String(contactPhone).replace(/[^0-9]/g, "") : "97400000000",
+        contactEmail: contactEmail ? String(contactEmail).trim() : undefined,
+        imageUrl: imageUrl ? String(imageUrl).trim() : undefined,
+        status: status === "pending" ? "pending" : "approved",
+        featured: Boolean(featured),
+        createdAt: new Date().toISOString(),
+        adminNotes: "Created directly by Admin with rich HTML / Compose view"
+      };
+
+      all.unshift(newListing);
+      writeListings(all);
+
+      // Auto-broadcast if approved live
+      if (newListing.status === "approved") {
+        const typeLabel = resolvedType === "vehicle" ? "🚗 Vehicle" : resolvedType === "room" ? "🛏️ Room" : resolvedType === "job" ? "💼 Job Vacancy" : "📱 Mobile";
+        const newNotif = {
+          id: `notif-appr-${Date.now()}`,
+          title: `New ${typeLabel} Ad Posted!`,
+          body: `${newListing.title} (${newListing.priceOrSalary}) in ${newListing.location}`,
+          date: new Date().toISOString(),
+          type: "classified",
+          actionUrl: resolvedType === "vehicle" ? "vehicles" : resolvedType === "room" ? "rooms" : resolvedType === "job" ? "jobs" : "mobiles"
+        };
+        const notifs = readNotifications();
+        notifs.unshift(newNotif);
+        if (notifs.length > 50) notifs.pop();
+        writeNotifications(notifs);
+      }
+
+      res.json({
+        success: true,
+        message: "Ad published successfully!",
+        listing: newListing
+      });
+    } catch (err: any) {
+      res.status(500).json({
+        success: false,
+        error: err.message || "Failed to create ad"
+      });
+    }
   });
 
   // 6. Notifications: Public endpoint to get latest update announcements

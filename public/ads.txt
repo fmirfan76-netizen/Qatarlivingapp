@@ -1,0 +1,3 @@
+# Google AdSense ads.txt for Qatar Living Jobs
+# Official Publisher ID: ca-pub-5776525398556337
+google.com, pub-5776525398556337, DIRECT, f08c47fec0942fa0

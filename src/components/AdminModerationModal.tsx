@@ -4,11 +4,14 @@ import {
   fetchAdminListings,
   updateAdminListing,
   deleteAdminListing,
+  createAdminListing,
   changeAdminPin,
   checkAdminPinStatus,
   AdminStats
 } from '../services/listingService';
 import { broadcastAdminNotification } from '../services/notificationService';
+import { AdminPostAdForm } from './AdminPostAdForm';
+import { stripHtmlTags, SafeHtmlRenderer } from '../utils/htmlRenderer';
 import {
   X,
   Lock,
@@ -33,7 +36,10 @@ import {
   KeyRound,
   Bell,
   Send,
-  Radio
+  Radio,
+  FileText,
+  PlusCircle,
+  Sparkles
 } from 'lucide-react';
 
 interface AdminModerationModalProps {
@@ -57,9 +63,10 @@ export const AdminModerationModal: React.FC<AdminModerationModalProps> = ({
   const [autoSignOutOnApprove, setAutoSignOutOnApprove] = useState(true);
   const [stats, setStats] = useState<AdminStats>({ total: 0, pending: 0, approved: 0, rejected: 0 });
   const [listings, setListings] = useState<UserListing[]>([]);
-  const [activeTab, setActiveTab] = useState<'pending' | 'approved' | 'rejected' | 'all'>('pending');
+  const [activeTab, setActiveTab] = useState<'pending' | 'approved' | 'rejected' | 'all' | 'compose'>('pending');
   const [categoryFilter, setCategoryFilter] = useState<'all' | 'vehicle' | 'room' | 'mobile' | 'job'>('all');
   const [isLoading, setIsLoading] = useState(false);
+  const [isPostingAd, setIsPostingAd] = useState(false);
   const [actionMessage, setActionMessage] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
 
@@ -215,6 +222,32 @@ export const AdminModerationModal: React.FC<AdminModerationModalProps> = ({
       setError(err.message || 'Failed to delete');
     } finally {
       setIsLoading(false);
+    }
+  };
+
+  const handleAdminCreateAd = async (listingData: Partial<UserListing>) => {
+    try {
+      setIsPostingAd(true);
+      setError(null);
+      const res = await createAdminListing(pinInput, listingData, settings.adminPin);
+
+      if (res.success && res.listing) {
+        setListings((prev) => [res.listing, ...prev]);
+        setStats((prev) => ({
+          ...prev,
+          total: prev.total + 1,
+          approved: res.listing.status === 'approved' ? prev.approved + 1 : prev.approved,
+          pending: res.listing.status === 'pending' ? prev.pending + 1 : prev.pending
+        }));
+        setActionMessage(`Ad "${res.listing.title}" published live successfully with rich HTML! 🚀`);
+        setActiveTab(res.listing.status === 'approved' ? 'approved' : 'pending');
+        if (onListingsUpdated) onListingsUpdated();
+        setTimeout(() => setActionMessage(null), 5000);
+      }
+    } catch (err: any) {
+      setError(err.message || 'Failed to publish ad');
+    } finally {
+      setIsPostingAd(false);
     }
   };
 
@@ -440,6 +473,20 @@ export const AdminModerationModal: React.FC<AdminModerationModalProps> = ({
                 >
                   All ({stats.total})
                 </button>
+
+                {/* POST AD (HTML & Compose View) */}
+                <button
+                  id="admin-post-html-ad-tab-btn"
+                  onClick={() => setActiveTab('compose')}
+                  className={`px-3 py-1.5 rounded-lg font-extrabold flex items-center gap-1.5 transition-all cursor-pointer shadow-xs ${
+                    activeTab === 'compose'
+                      ? 'bg-[#8e1e3c] text-white ring-2 ring-[#8e1e3c]/30'
+                      : 'bg-gradient-to-r from-red-50 to-pink-50 text-[#8e1e3c] border border-red-200 hover:bg-red-100'
+                  }`}
+                >
+                  <PlusCircle className="w-4 h-4 text-[#8e1e3c] group-hover:scale-110" />
+                  <span>+ Post Ad (HTML / Compose)</span>
+                </button>
               </div>
 
               {/* Action utilities */}
@@ -655,21 +702,40 @@ export const AdminModerationModal: React.FC<AdminModerationModalProps> = ({
               </form>
             )}
 
-            {/* Listings Review List */}
-            <div className="p-4 sm:p-5 overflow-y-auto space-y-3.5 flex-1">
-              {filteredListings.length === 0 ? (
-                <div className="text-center py-12 px-4 bg-stone-50 rounded-xl border border-dashed border-stone-200">
-                  <p className="text-stone-500 font-medium text-[13.5px]">
-                    No listings in <strong className="capitalize">{activeTab}</strong>.
-                  </p>
-                  <p className="text-stone-400 text-[11.5px] mt-1">
-                    {activeTab === 'pending'
-                      ? 'Great job! All user submitted mobile sales and jobs have been reviewed.'
-                      : 'Submissions will appear here once users submit ads.'}
-                  </p>
-                </div>
-              ) : (
-                filteredListings.map((item) => (
+            {/* Main Content Area: Post Ad Form OR Listings Review List */}
+            {activeTab === 'compose' ? (
+              <div className="p-4 sm:p-5 overflow-y-auto flex-1 bg-stone-100/50">
+                <AdminPostAdForm
+                  adminPin={pinInput}
+                  fallbackConfigPin={settings.adminPin}
+                  onSubmit={handleAdminCreateAd}
+                  onCancel={() => setActiveTab('pending')}
+                  isSubmitting={isPostingAd}
+                />
+              </div>
+            ) : (
+              /* Listings Review List */
+              <div className="p-4 sm:p-5 overflow-y-auto space-y-3.5 flex-1">
+                {filteredListings.length === 0 ? (
+                  <div className="text-center py-12 px-4 bg-stone-50 rounded-xl border border-dashed border-stone-200">
+                    <p className="text-stone-500 font-medium text-[13.5px]">
+                      No listings in <strong className="capitalize">{activeTab}</strong>.
+                    </p>
+                    <p className="text-stone-400 text-[11.5px] mt-1">
+                      {activeTab === 'pending'
+                        ? 'Great job! All user submitted mobile sales and jobs have been reviewed.'
+                        : 'Submissions will appear here once users submit ads.'}
+                    </p>
+                    <button
+                      onClick={() => setActiveTab('compose')}
+                      className="mt-3 px-4 py-2 bg-[#8e1e3c] text-white rounded-xl text-[12.5px] font-bold inline-flex items-center gap-1.5 cursor-pointer shadow-xs hover:bg-[#72152e]"
+                    >
+                      <PlusCircle className="w-4 h-4" />
+                      <span>Post New Ad Now (HTML &amp; Compose)</span>
+                    </button>
+                  </div>
+                ) : (
+                  filteredListings.map((item) => (
                   <div
                     key={item.id}
                     className={`p-4 rounded-xl border transition-all ${
@@ -786,9 +852,11 @@ export const AdminModerationModal: React.FC<AdminModerationModalProps> = ({
 
                         {/* Description */}
                         {item.description && (
-                          <p className="text-[12px] text-stone-600 mt-2 line-clamp-2 bg-white/70 p-2 rounded-lg border border-stone-100">
-                            {item.description}
-                          </p>
+                          <div className="mt-2 bg-white/70 p-2.5 rounded-lg border border-stone-100">
+                            <p className="text-[12px] text-stone-600 line-clamp-2">
+                              {stripHtmlTags(item.description)}
+                            </p>
+                          </div>
                         )}
 
                         {/* Submitter details */}
@@ -899,9 +967,10 @@ export const AdminModerationModal: React.FC<AdminModerationModalProps> = ({
                 ))
               )}
             </div>
-          </>
-        )}
-      </div>
+          )}
+        </>
+      )}
     </div>
-  );
+  </div>
+);
 };

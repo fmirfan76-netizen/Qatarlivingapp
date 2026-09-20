@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { UserListing, AppSettings, ListingType } from '../types';
 import { submitNewListing } from '../services/listingService';
+import { ImageUploadInput } from './ImageUploadInput';
 import {
   X,
   Smartphone,
@@ -69,6 +70,16 @@ const DEFAULT_ROOM_IMAGES: Record<string, string> = {
   'Single Room': 'https://images.unsplash.com/photo-1540518614846-7ede433c4ef0?w=600&auto=format&fit=crop&q=80',
   'Studio Apartment': 'https://images.unsplash.com/photo-1502672260266-1c1ef2d93688?w=600&auto=format&fit=crop&q=80',
   Other: 'https://images.unsplash.com/photo-1598928506311-c55ded91a20c?w=600&auto=format&fit=crop&q=80'
+};
+
+const DEFAULT_JOB_IMAGES: Record<string, string> = {
+  Driver: 'https://images.unsplash.com/photo-1449965408869-eaa3f722e40d?w=600&auto=format&fit=crop&q=80',
+  'Office & Admin': 'https://images.unsplash.com/photo-1497366216548-37526070297c?w=600&auto=format&fit=crop&q=80',
+  Hospitality: 'https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?w=600&auto=format&fit=crop&q=80',
+  Healthcare: 'https://images.unsplash.com/photo-1576091160399-112ba8d25d1d?w=600&auto=format&fit=crop&q=80',
+  Engineering: 'https://images.unsplash.com/photo-1541888946425-d0fbb18615f8?w=600&auto=format&fit=crop&q=80',
+  'Sales & Retail': 'https://images.unsplash.com/photo-1441986300917-64674bd600d8?w=600&auto=format&fit=crop&q=80',
+  Other: 'https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?w=600&auto=format&fit=crop&q=80'
 };
 
 export const PostAdModal: React.FC<PostAdModalProps> = ({
@@ -168,6 +179,8 @@ export const PostAdModal: React.FC<PostAdModalProps> = ({
           selectedImage = DEFAULT_VEHICLE_IMAGES[categoryOrBrand] || DEFAULT_VEHICLE_IMAGES.Other;
         } else if (listingType === 'room') {
           selectedImage = DEFAULT_ROOM_IMAGES[categoryOrBrand] || DEFAULT_ROOM_IMAGES.Other;
+        } else if (listingType === 'job') {
+          selectedImage = DEFAULT_JOB_IMAGES[categoryOrBrand] || DEFAULT_JOB_IMAGES.Other;
         }
       }
 
@@ -702,17 +715,14 @@ export const PostAdModal: React.FC<PostAdModalProps> = ({
               </div>
             </div>
 
-            {/* Optional Photo URL */}
-            <div>
-              <label className="block text-[11.5px] font-bold text-stone-600 mb-1">
-                Photo URL (Optional)
-              </label>
-              <input
-                type="url"
+            {/* Picture / Photo Upload (Camera, Device Gallery, Drag & Drop, URL, or Curated Samples) */}
+            <div className="pt-1">
+              <ImageUploadInput
                 value={customImageUrl}
-                onChange={(e) => setCustomImageUrl(e.target.value)}
-                placeholder="https://... (Leave blank for curated high-res Qatar preview image)"
-                className="w-full px-3 py-1.5 text-[12px] border border-stone-300 rounded-lg focus:outline-none focus:border-[#8e1e3c]"
+                onChange={setCustomImageUrl}
+                listingType={listingType}
+                categoryOrBrand={categoryOrBrand}
+                label="Ad Picture / Photo"
               />
             </div>
 

@@ -199,6 +199,7 @@ export default function App() {
         location: l.location,
         salary: l.priceOrSalary,
         company: l.contactName,
+        img: l.imageUrl,
         date: new Date(l.createdAt).toLocaleDateString('en-GB')
       }));
     return [...userApprovedJobs, ...jobs];

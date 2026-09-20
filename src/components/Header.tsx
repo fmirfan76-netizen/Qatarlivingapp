@@ -8,6 +8,7 @@ interface HeaderProps {
   onOpenPostAd: () => void;
   onOpenAdmin: () => void;
   onOpenNotifications?: () => void;
+  onOpenAdSenseAudit?: () => void;
   unreadNotifCount?: number;
   pendingCount?: number;
   isLoading: boolean;
@@ -21,6 +22,7 @@ export const Header: React.FC<HeaderProps> = ({
   onOpenPostAd,
   onOpenAdmin,
   onOpenNotifications,
+  onOpenAdSenseAudit,
   unreadNotifCount = 0,
   pendingCount = 0,
   isLoading,
@@ -85,6 +87,19 @@ export const Header: React.FC<HeaderProps> = ({
               </span>
             )}
           </button>
+
+          {/* AdSense Approval Diagnostic Tool */}
+          {onOpenAdSenseAudit && (
+            <button
+              id="header-adsense-btn"
+              onClick={onOpenAdSenseAudit}
+              title="Google AdSense Approval Audit &amp; Verification"
+              className="px-2 py-1.5 rounded-lg bg-amber-400/20 hover:bg-amber-400/30 active:scale-95 transition-colors text-amber-200 text-[11px] font-bold flex items-center gap-1 border border-amber-300/30 cursor-pointer"
+            >
+              <Sparkles className="w-3.5 h-3.5 text-amber-300" />
+              <span className="hidden md:inline">AdSense</span>
+            </button>
+          )}
 
           <button
             id="header-apk-btn"

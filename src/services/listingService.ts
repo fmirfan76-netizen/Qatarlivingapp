@@ -275,6 +275,86 @@ export async function deleteAdminListing(pin: string, id: string): Promise<boole
   return true;
 }
 
+export async function createAdminListing(
+  pin: string,
+  listing: Partial<UserListing>,
+  fallbackConfigPin?: string
+): Promise<{ success: boolean; message: string; listing: UserListing }> {
+  const enteredPin = pin.trim();
+  const clientValid = isPinMatch(enteredPin, fallbackConfigPin);
+
+  // Try backend first
+  try {
+    const res = await fetch('/api/admin/create-ad', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'x-admin-pin': enteredPin
+      },
+      body: JSON.stringify(listing)
+    });
+    const contentType = res.headers.get('content-type') || '';
+    if (res.ok && contentType.includes('application/json')) {
+      const data = await res.json();
+      if (data.success && data.listing) {
+        // Also save to localStorage
+        try {
+          const local = localStorage.getItem('ql_local_listings');
+          const list: UserListing[] = local ? JSON.parse(local) : [];
+          list.unshift(data.listing);
+          localStorage.setItem('ql_local_listings', JSON.stringify(list));
+        } catch {}
+        return data;
+      }
+    }
+  } catch (err) {
+    console.warn('Backend /api/admin/create-ad unavailable, falling back to local storage:', err);
+  }
+
+  // Cloudflare static fallback
+  if (!clientValid) {
+    throw new Error('Invalid Admin PIN');
+  }
+
+  const newAd: UserListing = {
+    id: `admin-ad-${Date.now()}`,
+    type: listing.type || 'job',
+    title: listing.title || 'Admin Posted Ad',
+    categoryOrBrand: listing.categoryOrBrand || (listing.type === 'job' ? 'General' : 'Other'),
+    priceOrSalary: listing.priceOrSalary || 'Competitive',
+    location: listing.location || 'Doha, Qatar',
+    condition: listing.condition,
+    storage: listing.storage,
+    subCategory: listing.subCategory,
+    mileage: listing.mileage,
+    yearModel: listing.yearModel,
+    furnished: listing.furnished,
+    utilitiesIncluded: Boolean(listing.utilitiesIncluded),
+    description: listing.description || '',
+    contactName: listing.contactName || 'Qatar Living Admin',
+    contactPhone: listing.contactPhone || '97400000000',
+    contactEmail: listing.contactEmail,
+    imageUrl: listing.imageUrl,
+    status: listing.status || 'approved',
+    featured: Boolean(listing.featured),
+    createdAt: new Date().toISOString(),
+    adminNotes: 'Created via Admin Panel with HTML / Compose Editor'
+  };
+
+  try {
+    const local = localStorage.getItem('ql_local_listings');
+    const list: UserListing[] = local ? JSON.parse(local) : [];
+    list.unshift(newAd);
+    localStorage.setItem('ql_local_listings', JSON.stringify(list));
+  } catch {}
+
+  return {
+    success: true,
+    message: 'Ad created and published successfully!',
+    listing: newAd
+  };
+}
+
 export async function changeAdminPin(
   currentPin: string,
   newPin: string,

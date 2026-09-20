@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { Job } from '../types';
+import { SafeHtmlRenderer } from '../utils/htmlRenderer';
 import {
   Share2,
   Calendar,
@@ -127,8 +128,10 @@ export const JobDetailModal: React.FC<JobDetailModalProps> = ({
               <Briefcase className="w-4 h-4 text-[#8e1e3c]" />
               <span>Job Overview &amp; Specifications</span>
             </h4>
-            <div className="text-[13px] text-stone-600 leading-relaxed whitespace-pre-line bg-stone-50/50 p-3.5 rounded-xl border border-stone-100">
-              {job.snippet || 'Full job details, employer requirements, and application procedures are available via the official job link.'}
+            <div className="text-[13px] text-stone-600 bg-stone-50/50 p-3.5 rounded-xl border border-stone-100">
+              <SafeHtmlRenderer
+                content={job.snippet || 'Full job details, employer requirements, and application procedures are available via the official job link.'}
+              />
             </div>
           </div>
 

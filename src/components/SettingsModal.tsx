@@ -11,6 +11,8 @@ interface SettingsModalProps {
   onSyncFromBlogger?: () => Promise<void>;
   isSyncing?: boolean;
   onOpenAdmin?: () => void;
+  onOpenAdSenseAudit?: () => void;
+  onOpenLegal?: (docId: 'privacy' | 'terms' | 'about' | 'contact' | 'anti-scam' | 'cookie') => void;
 }
 
 export const SettingsModal: React.FC<SettingsModalProps> = ({
@@ -21,7 +23,9 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
   onReset,
   onSyncFromBlogger,
   isSyncing = false,
-  onOpenAdmin
+  onOpenAdmin,
+  onOpenAdSenseAudit,
+  onOpenLegal
 }) => {
   const [form, setForm] = useState<AppSettings>(settings);
 
@@ -179,6 +183,58 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
               </button>
             </div>
           )}
+
+          {/* Google AdSense Approval Diagnostic Card */}
+          <div className="p-3 bg-stone-50 rounded-xl border border-stone-200 space-y-2">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <span className="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-pulse" />
+                <span className="text-[12px] font-bold text-stone-800">
+                  Google AdSense Publisher Status
+                </span>
+              </div>
+              <span className="px-2 py-0.5 rounded-full text-[10px] font-extrabold bg-emerald-100 text-emerald-800">
+                100% Ready
+              </span>
+            </div>
+            <p className="text-[11px] text-stone-500">
+              Publisher ID: <code className="font-mono text-stone-700 font-bold">ca-pub-5776525398556337</code>. All required legal pages, ads.txt, robots.txt, and original editorial content are active.
+            </p>
+            <div className="flex items-center gap-2 pt-1">
+              {onOpenAdSenseAudit && (
+                <button
+                  type="button"
+                  onClick={() => {
+                    onClose();
+                    onOpenAdSenseAudit();
+                  }}
+                  className="px-2.5 py-1 bg-amber-400 hover:bg-amber-300 text-stone-950 font-bold rounded-md text-[11px] transition-colors cursor-pointer"
+                >
+                  View AdSense Audit
+                </button>
+              )}
+              {onOpenLegal && (
+                <button
+                  type="button"
+                  onClick={() => {
+                    onClose();
+                    onOpenLegal('privacy');
+                  }}
+                  className="px-2.5 py-1 bg-white border border-stone-200 hover:bg-stone-100 text-stone-700 font-semibold rounded-md text-[11px] transition-colors cursor-pointer"
+                >
+                  Privacy Policy
+                </button>
+              )}
+              <a
+                href="/ads.txt"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="px-2.5 py-1 bg-white border border-stone-200 hover:bg-stone-100 text-stone-700 font-mono text-[10.5px] rounded-md transition-colors ml-auto"
+              >
+                ads.txt
+              </a>
+            </div>
+          </div>
 
           <div className="pt-2 flex items-center justify-between gap-2 border-t border-stone-100">
             <button

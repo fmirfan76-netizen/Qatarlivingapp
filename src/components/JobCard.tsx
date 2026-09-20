@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { Job } from '../types';
+import { stripHtmlTags } from '../utils/htmlRenderer';
 import { Share2, Calendar, MapPin, Building2, Bookmark, ExternalLink } from 'lucide-react';
 
 interface JobCardProps {
@@ -89,7 +90,7 @@ export const JobCard: React.FC<JobCardProps> = ({
 
         {/* Snippet */}
         <p className="text-[12.5px] text-[#555] leading-relaxed line-clamp-2 mt-1">
-          {job.snippet || 'Click Apply to view comprehensive job specifications, salary details, and employer contact criteria.'}
+          {job.snippet ? stripHtmlTags(job.snippet) : 'Click Apply to view comprehensive job specifications, salary details, and employer contact criteria.'}
         </p>
 
         {/* Button Row */}

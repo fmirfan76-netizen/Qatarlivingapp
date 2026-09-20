@@ -1,6 +1,7 @@
 import React, { useState, useMemo } from 'react';
 import { UserListing } from '../types';
 import { AdsterraBanner } from './AdsterraBanner';
+import { stripHtmlTags, SafeHtmlRenderer } from '../utils/htmlRenderer';
 import {
   Smartphone,
   Search,
@@ -145,12 +146,15 @@ export const MobilesView: React.FC<MobilesViewProps> = ({
             >
               <div>
                 {/* Photo & Badge */}
-                <div className="relative mb-2.5 rounded-xl overflow-hidden bg-stone-100 aspect-video flex items-center justify-center">
+                <div
+                  onClick={() => setSelectedListing(item)}
+                  className="relative mb-2.5 rounded-xl overflow-hidden bg-stone-100 aspect-video flex items-center justify-center cursor-pointer group"
+                >
                   {item.imageUrl ? (
                     <img
                       src={item.imageUrl}
                       alt={item.title}
-                      className="w-full h-full object-cover"
+                      className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
                       loading="lazy"
                     />
                   ) : (
@@ -189,7 +193,10 @@ export const MobilesView: React.FC<MobilesViewProps> = ({
                 </div>
 
                 {/* Title */}
-                <h3 className="font-bold text-[14px] text-stone-900 mt-1 line-clamp-2 leading-snug">
+                <h3
+                  onClick={() => setSelectedListing(item)}
+                  className="font-bold text-[14px] text-stone-900 mt-1 line-clamp-2 leading-snug cursor-pointer hover:text-[#8e1e3c] transition-colors"
+                >
                   {item.title}
                 </h3>
 
@@ -206,7 +213,7 @@ export const MobilesView: React.FC<MobilesViewProps> = ({
                 {/* Short snippet */}
                 {item.description && (
                   <p className="text-[11.5px] text-stone-600 mt-1.5 line-clamp-2 bg-stone-50/80 p-2 rounded-lg">
-                    {item.description}
+                    {stripHtmlTags(item.description)}
                   </p>
                 )}
               </div>
@@ -258,6 +265,126 @@ export const MobilesView: React.FC<MobilesViewProps> = ({
       ) : (
         <div className="text-center py-10 text-stone-400 text-[13px]">
           Loading verified mobile listings...
+        </div>
+      )}
+
+      {/* Selected Mobile Detail Modal */}
+      {selectedListing && (
+        <div
+          className="fixed inset-0 z-50 bg-black/60 flex items-center justify-center p-3 sm:p-4 backdrop-blur-xs"
+          onClick={(e) => {
+            if (e.target === e.currentTarget) {
+              setSelectedListing(null);
+            }
+          }}
+        >
+          <div className="bg-white rounded-2xl w-full max-w-lg shadow-2xl border border-stone-200 max-h-[92vh] flex flex-col overflow-hidden animate-in fade-in zoom-in-95 duration-200">
+            {/* Modal Image Header */}
+            <div className="relative aspect-video w-full bg-stone-900 overflow-hidden shrink-0">
+              {selectedListing.imageUrl ? (
+                <img
+                  src={selectedListing.imageUrl}
+                  alt={selectedListing.title}
+                  className="w-full h-full object-cover"
+                />
+              ) : (
+                <div className="w-full h-full flex flex-col items-center justify-center text-stone-400">
+                  <Smartphone className="w-12 h-12" />
+                  <span className="text-[12px] mt-2">Qatar Mobile Listing</span>
+                </div>
+              )}
+
+              <button
+                onClick={() => setSelectedListing(null)}
+                className="absolute top-3 right-3 w-8 h-8 rounded-full bg-black/60 text-white flex items-center justify-center hover:bg-black/80 transition-colors cursor-pointer"
+              >
+                <X className="w-4 h-4" />
+              </button>
+
+              <div className="absolute bottom-3 left-3 flex items-center gap-1.5">
+                <span className="px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-stone-900/85 text-white backdrop-blur-xs">
+                  📱 {selectedListing.categoryOrBrand}
+                </span>
+                <span className="px-2.5 py-0.5 rounded-full text-[11px] font-black bg-amber-400 text-stone-950">
+                  {selectedListing.priceOrSalary}
+                </span>
+              </div>
+            </div>
+
+            {/* Modal Body */}
+            <div className="p-4 sm:p-5 space-y-4 overflow-y-auto">
+              <div>
+                <h3 className="text-[17px] font-extrabold text-stone-900 leading-snug">
+                  {selectedListing.title}
+                </h3>
+                <div className="flex flex-wrap items-center gap-2 mt-1.5 text-[12px] text-stone-500">
+                  <span className="flex items-center gap-1 font-medium">
+                    <MapPin className="w-3.5 h-3.5 text-stone-400" />
+                    {selectedListing.location}
+                  </span>
+                  <span>•</span>
+                  <span>
+                    Posted {new Date(selectedListing.createdAt).toLocaleDateString('en-GB')}
+                  </span>
+                </div>
+              </div>
+
+              {/* Specs Grid */}
+              <div className="grid grid-cols-2 gap-2 bg-stone-50 p-3 rounded-xl border border-stone-200/80 text-[12px]">
+                <div>
+                  <span className="text-stone-400 text-[11px] block">Brand</span>
+                  <strong className="text-stone-800">{selectedListing.categoryOrBrand}</strong>
+                </div>
+                <div>
+                  <span className="text-stone-400 text-[11px] block">Storage</span>
+                  <strong className="text-stone-800">{selectedListing.storage || 'Standard'}</strong>
+                </div>
+                <div>
+                  <span className="text-stone-400 text-[11px] block">Condition</span>
+                  <strong className="text-emerald-700">{selectedListing.condition || 'Used'}</strong>
+                </div>
+                <div>
+                  <span className="text-stone-400 text-[11px] block">Location</span>
+                  <strong className="text-stone-800">{selectedListing.location}</strong>
+                </div>
+              </div>
+
+              {/* Description */}
+              {selectedListing.description && (
+                <div>
+                  <h4 className="text-[12px] font-bold text-stone-700 uppercase tracking-wide mb-1">
+                    Details &amp; Specifications
+                  </h4>
+                  <div className="text-[13px] text-stone-600 bg-stone-50/50 p-3.5 rounded-lg border border-stone-100">
+                    <SafeHtmlRenderer content={selectedListing.description} />
+                  </div>
+                </div>
+              )}
+
+              {/* Contact Seller */}
+              <div className="pt-2 border-t border-stone-100 flex flex-col sm:flex-row items-stretch sm:items-center gap-2">
+                <a
+                  href={`https://wa.me/${selectedListing.contactPhone.replace(/[^0-9]/g, '')}?text=${encodeURIComponent(
+                    `Hi ${selectedListing.contactName}! I am interested in your "${selectedListing.title}" (${selectedListing.priceOrSalary}) listed on Qatar Living Jobs app.`
+                  )}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="flex-1 py-3 px-4 rounded-xl bg-[#25d366] hover:bg-[#20bd5a] text-white font-black text-[13.5px] flex items-center justify-center gap-2 shadow-xs transition-transform active:scale-98"
+                >
+                  <MessageCircle className="w-4 h-4 fill-white" />
+                  <span>Chat on WhatsApp</span>
+                </a>
+
+                <a
+                  href={`tel:${selectedListing.contactPhone.replace(/[^0-9]/g, '')}`}
+                  className="py-3 px-4 rounded-xl bg-stone-100 hover:bg-stone-200 text-stone-700 font-bold text-[13px] flex items-center justify-center gap-2"
+                >
+                  <Phone className="w-4 h-4" />
+                  <span>Call Seller</span>
+                </a>
+              </div>
+            </div>
+          </div>
         </div>
       )}
     </div>

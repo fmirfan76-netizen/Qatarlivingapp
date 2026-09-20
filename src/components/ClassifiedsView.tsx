@@ -1,6 +1,7 @@
 import React, { useState, useMemo } from 'react';
 import { UserListing, ListingType } from '../types';
 import { AdsterraBanner } from './AdsterraBanner';
+import { stripHtmlTags, SafeHtmlRenderer } from '../utils/htmlRenderer';
 import {
   Smartphone,
   Car,
@@ -249,7 +250,7 @@ export const ClassifiedsView: React.FC<ClassifiedsViewProps> = ({
           {/* Description snippet */}
           {item.description && (
             <p className="text-[12px] text-stone-500 mt-2 line-clamp-2">
-              {item.description}
+              {stripHtmlTags(item.description)}
             </p>
           )}
         </div>
@@ -628,7 +629,8 @@ export const ClassifiedsView: React.FC<ClassifiedsViewProps> = ({
                   {selectedListing.type === 'vehicle' && <Car className="w-12 h-12" />}
                   {selectedListing.type === 'room' && <Home className="w-12 h-12" />}
                   {selectedListing.type === 'mobile' && <Smartphone className="w-12 h-12" />}
-                  <span className="text-[12px] mt-2">Qatar Living Verified Classified</span>
+                  {selectedListing.type === 'job' && <Briefcase className="w-12 h-12" />}
+                  <span className="text-[12px] mt-2">Qatar Living Verified Ad</span>
                 </div>
               )}
 
@@ -644,6 +646,7 @@ export const ClassifiedsView: React.FC<ClassifiedsViewProps> = ({
                   {selectedListing.type === 'vehicle' && '🚗 Vehicle'}
                   {selectedListing.type === 'room' && '🛏️ Room / Bed Space'}
                   {selectedListing.type === 'mobile' && '📱 Mobile Phone'}
+                  {selectedListing.type === 'job' && '💼 Job Vacancy'}
                 </span>
                 <span className="px-2.5 py-0.5 rounded-full text-[11px] font-black bg-amber-400 text-stone-950">
                   {selectedListing.priceOrSalary}
@@ -731,6 +734,27 @@ export const ClassifiedsView: React.FC<ClassifiedsViewProps> = ({
                     </div>
                   </>
                 )}
+
+                {selectedListing.type === 'job' && (
+                  <>
+                    <div>
+                      <span className="text-stone-400 text-[11px] block">Role / Category</span>
+                      <strong className="text-stone-800">{selectedListing.categoryOrBrand}</strong>
+                    </div>
+                    <div>
+                      <span className="text-stone-400 text-[11px] block">Salary Offered</span>
+                      <strong className="text-[#8e1e3c] font-black">{selectedListing.priceOrSalary}</strong>
+                    </div>
+                    <div>
+                      <span className="text-stone-400 text-[11px] block">Company / Recruiter</span>
+                      <strong className="text-stone-800">{selectedListing.contactName}</strong>
+                    </div>
+                    <div>
+                      <span className="text-stone-400 text-[11px] block">Location</span>
+                      <strong className="text-stone-800">{selectedListing.location}</strong>
+                    </div>
+                  </>
+                )}
               </div>
 
               {/* Description */}
@@ -739,9 +763,9 @@ export const ClassifiedsView: React.FC<ClassifiedsViewProps> = ({
                   <h4 className="text-[12px] font-bold text-stone-700 uppercase tracking-wide mb-1">
                     Description &amp; Details
                   </h4>
-                  <p className="text-[13px] text-stone-600 whitespace-pre-line leading-relaxed bg-stone-50/50 p-3 rounded-lg border border-stone-100">
-                    {selectedListing.description}
-                  </p>
+                  <div className="text-[13px] text-stone-600 bg-stone-50/50 p-3.5 rounded-lg border border-stone-100">
+                    <SafeHtmlRenderer content={selectedListing.description} />
+                  </div>
                 </div>
               )}
 
